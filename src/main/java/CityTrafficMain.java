@@ -16,16 +16,26 @@ import java.io.IOException;
 
 public class CityTrafficMain {
 
-    public static class CityTrafficMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
-
-
+    public static class CityTrafficMapper extends Mapper<LongWritable, Text, LongWritable, Cam> {
+        public String[] directions = {"gare1","gare2"};
         @Override
         protected void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
-
             String tokens[] = value.toString().split(";");
-            if (tokens.length < 6) return;
-            context.write(new Text(tokens[0].toString()),new LongWritable(new Integer(tokens[0])));
+            if(tokens.length <= 5) return;
+            if(tokens[0].length() == 0 || tokens[1].length() ==0 || tokens[2].length() ==0 || tokens[3].length() == 0
+            || (tokens[4].length() !=0 && tokens[5].length() !=0) || (tokens[4].length() ==0 && tokens[5].length() ==0))
+                return ;
+//            if (key.get() == 0){
+//                if (tokens.length < 7) return;
+//
+//            }
+            String direction = "";
+            if(tokens[4].length() != 0 )
+                direction = directions[0];
+//            if(tokens[5].length() != 0)
+//                direction = directions[1];
+            context.write(key,new Cam (Integer.parseInt(tokens[0]),tokens[1],tokens[2],tokens[3], false,direction));
 
         }
     }
@@ -43,16 +53,17 @@ public class CityTrafficMain {
     }
 
     public static void main(String[] args) throws Exception {
+        // Multiple Input Format
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Cleaning Cam Data");
         job.setJarByClass(CityTrafficMain.class);
         job.setMapperClass(CityTrafficMapper.class);
-        job.setReducerClass(CityTrafficReducer.class);
+//        job.setReducerClass(CityTrafficReducer.class);
 
-        job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(LongWritable.class);
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(LongWritable.class);
+        job.setMapOutputKeyClass(LongWritable.class);
+        job.setMapOutputValueClass(Cam.class);
+        job.setOutputKeyClass(LongWritable.class);
+        job.setOutputValueClass(Cam.class);
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         // /user/auber/data_ple/citytraffic/Data_cam_example.csv
