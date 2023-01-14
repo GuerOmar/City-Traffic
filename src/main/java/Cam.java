@@ -46,6 +46,6 @@ public class Cam implements Writable, Cloneable{
 
     @Override
     public String toString() {
-        return id +"," + categorie +"," + date + "," + time + "," + isCyclist + "," + direction;
+        return id +";" + categorie +";" + date + ";" + time + ";" + direction + ";" + isCyclist;
     }
 }
