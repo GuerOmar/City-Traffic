@@ -13,37 +13,29 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
 
-public class CityTrafficMain {
+public class CityTubeMain {
 
-    public static class CityTrafficMapper extends Mapper<LongWritable, Text, LongWritable, Cam> {
+    public static class CityTubeMapper extends Mapper<LongWritable, Text, LongWritable, Tube> {
         public String[] directions ;
         @Override
         protected void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
-            String tokens[] = value.toString().split(";");
-//            if(key.get() == 0)
-//                context.write(key,value);
-            if (key.get() == 0){
-                directions = new String[]{tokens[4], tokens[5]} ;
-                return;
-//                context.write(key, new Text(directions[0]+ ","+ directions[1]));
-            }
-            if(tokens.length <= 5) return;
+            String tokens[] = value.toString().split(",");
+            if(key.get() ==0)
+            return;
+            if (tokens.length < 9) return;
             if(tokens[0].length() == 0 || tokens[1].length() ==0 || tokens[2].length() ==0 || tokens[3].length() == 0
-            || (tokens[4].length() !=0 && tokens[5].length() !=0) || (tokens[4].length() ==0 && tokens[5].length() ==0))
-                return ;
-
-            String direction = "";
-            if(tokens[4].length() != 0 )
-                direction = directions[0];
-            if(tokens[5].length() != 0)
-                direction = directions[1];
-            context.write(key,new Cam (Integer.parseInt(tokens[0]),tokens[1],tokens[2],tokens[3], false,direction));
+            || tokens[4].length() ==0 || tokens[5].length() ==0 || tokens[8].length() ==0 )
+            return ;
+            int heure = Integer.parseInt(tokens[2].split(":")[0]);
+            int minute = Integer.parseInt(tokens[2].split(":")[1]) ;
+            context.write(key,new Tube (Integer.parseInt(tokens[0]),tokens[1],heure,minute,Integer.parseInt(tokens[3]),Integer.parseInt(tokens[4]),
+                    Integer.parseInt(tokens[5]),tokens[8]));
 
         }
     }
 
-    public static class CityTrafficReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
+    public static class CityTubeReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
         public void reduce(Text key, Iterable<IntWritable> values,Context context) throws IOException, InterruptedException {
 //            int max = 0;
 //            for (IntWritable val : values) {
@@ -59,17 +51,17 @@ public class CityTrafficMain {
         // Multiple Input Format
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Cleaning Cam Data");
-        job.setJarByClass(CityTrafficMain.class);
-        job.setMapperClass(CityTrafficMapper.class);
-//        job.setReducerClass(CityTrafficReducer.class);
+        job.setJarByClass(CityTubeMain.class);
+        job.setMapperClass(CityTubeMapper.class);
+//        job.setReducerClass(CityTubeReducer.class);
 
         job.setMapOutputKeyClass(LongWritable.class);
-        job.setMapOutputValueClass(Cam.class);
+        job.setMapOutputValueClass(Tube.class);
         job.setOutputKeyClass(LongWritable.class);
-        job.setOutputValueClass(Cam.class);
+        job.setOutputValueClass(Tube.class);
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
-        // /user/auber/data_ple/citytraffic/Data_cam_example.csv
+        // /user/auber/data_ple/citytube/Data_cam_example.csv
         // testCamCleaning
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
