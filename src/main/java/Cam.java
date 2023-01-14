@@ -43,5 +43,9 @@ public class Cam implements Writable, Cloneable{
         direction = dataInput.readUTF();
         isCyclist = dataInput.readBoolean();
     }
-    
+
+    @Override
+    public String toString() {
+        return id +"," + categorie +"," + date + "," + time + "," + isCyclist + "," + direction;
+    }
 }
