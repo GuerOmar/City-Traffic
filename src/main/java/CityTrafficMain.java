@@ -12,6 +12,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CityTrafficMain {
 
@@ -26,7 +28,7 @@ public class CityTrafficMain {
                 directions[1] = tokens[4];
                 return;
             }
-            if(tokens.length <5) return;
+            if(tokens.length <4) return;
             if(tokens[0].length() == 0 || tokens[1].length() ==0 || tokens[2].length() ==0
                 || (tokens.length == 5 && tokens[3].length()!=0 && tokens[4].length()==0)
                 || (tokens.length == 4 && tokens[3].length()==0))
@@ -43,16 +45,40 @@ public class CityTrafficMain {
         }
     }
 
-    public static class CityTrafficReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
-        public void reduce(Text key, Iterable<IntWritable> values,Context context) throws IOException, InterruptedException {
-//            int max = 0;
-//            for (IntWritable val : values) {
-//                if (val.get() > max) {
-//                    max = val.get();
+    public static class CityTrafficReducer extends Reducer<LongWritable,Cam,Text,Text> {
+//        private Map<String,int[]> map = new HashMap<>();
+//        long counter = 0;
+//
+//
+//        @Override
+//        protected void cleanup(Context context) throws IOException, InterruptedException {
+//            for (Map.Entry<String, int[]> entry : map.entrySet()) {
+//                String mapKey = entry.getKey();
+//                int[] value = entry.getValue();
+//                context.write(new Text(mapKey),new Text(value[0]+","+value[1]));
+//            }
+//
+////            context.write(new Text("Counter is "), new Text(""+counter));
+////            context.write(new Text("HashMap length is") , new Text(""+ map.size()));
+//        }
+//
+//        public void reduce(LongWritable key, Iterable<Cam> values,Context context) throws IOException, InterruptedException {
+//            for (Cam cam: values) {
+//                counter ++;
+//                String ch = cam.JOUR +":"+ cam.HEURE ;
+//                int[] counters = map.get(ch);
+//                if (counters == null){
+//                    counters = new int[2];
+//                    map.put(ch, counters);
+//                }
+//                if (radar.SENS == 1) {
+//                    counters[0]++;
+//                } else if (radar.SENS == 2) {
+//                    counters[1]++;
 //                }
 //            }
-//            context.write(key, new IntWritable(max));
-        }
+//
+//        }
     }
 
     public static void main(String[] args) throws Exception {
