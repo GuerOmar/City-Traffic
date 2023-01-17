@@ -16,29 +16,29 @@ import java.io.IOException;
 public class CityTrafficMain {
 
     public static class CityTrafficMapper extends Mapper<LongWritable, Text, LongWritable, Cam> {
-        public String[] directions ;
+        public String[] directions = new String[2];
         @Override
         protected void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
-            String tokens[] = value.toString().split(";");
-//            if(key.get() == 0)
-//                context.write(key,value);
-            if (key.get() == 0){
-                directions = new String[]{tokens[4], tokens[5]} ;
+            String tokens[] = value.toString().split(",");
+            if (key.get() == 0 && tokens.length == 5){
+                directions[0] = tokens[3];
+                directions[1] = tokens[4];
                 return;
-//                context.write(key, new Text(directions[0]+ ","+ directions[1]));
             }
-            if(tokens.length <= 5) return;
-            if(tokens[0].length() == 0 || tokens[1].length() ==0 || tokens[2].length() ==0 || tokens[3].length() == 0
-            || (tokens[4].length() !=0 && tokens[5].length() !=0) || (tokens[4].length() ==0 && tokens[5].length() ==0))
+            if(tokens.length <5) return;
+            if(tokens[0].length() == 0 || tokens[1].length() ==0 || tokens[2].length() ==0
+                || (tokens.length == 5 && tokens[3].length()!=0 && tokens[4].length()==0)
+                || (tokens.length == 4 && tokens[3].length()==0))
                 return ;
 
             String direction = "";
-            if(tokens[4].length() != 0 )
+            if(tokens.length == 4 )
                 direction = directions[0];
-            if(tokens[5].length() != 0)
+            if(tokens.length == 5)
                 direction = directions[1];
-            context.write(key,new Cam (Integer.parseInt(tokens[0]),tokens[1],tokens[2],tokens[3], false,direction));
+
+            context.write(key,new Cam (Integer.parseInt(tokens[0]),tokens[1],tokens[2].split(" ")[0],tokens[2].split(" ")[1],direction));
 
         }
     }

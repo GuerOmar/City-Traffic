@@ -5,21 +5,19 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class Cam implements Writable, Cloneable{
-    private long id ;
-    private String categorie;
-    private String date , time;
-    private boolean isCyclist;
-    private String direction;
+    public long id ;
+    public String categorie;
+    public String date , time;
+    public String direction;
     public Cam(){
 
     }
 
-    public Cam(long id, String categorie,String date,String time, boolean isCyclist, String direction) {
+    public Cam(long id, String categorie,String date,String time, String direction) {
         this.id = id;
         this.categorie = categorie;
         this.date = date;
         this.time = time;
-        this.isCyclist = isCyclist;
         this.direction = direction;
     }
 
@@ -30,7 +28,6 @@ public class Cam implements Writable, Cloneable{
         dataOutput.writeUTF(date);
         dataOutput.writeUTF(time);
         dataOutput.writeUTF(direction);
-        dataOutput.writeBoolean(isCyclist);
     }
 
     @Override
@@ -40,11 +37,10 @@ public class Cam implements Writable, Cloneable{
         date = dataInput.readUTF();
         time = dataInput.readUTF();
         direction = dataInput.readUTF();
-        isCyclist = dataInput.readBoolean();
     }
 
     @Override
     public String toString() {
-        return id +";" + categorie +";" + date + ";" + time + ";" + direction + ";" + isCyclist;
+        return id +","+ categorie +"," + date + "," + time + "," + direction;
     }
 }

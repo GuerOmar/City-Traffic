@@ -5,13 +5,13 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class Radar implements Writable, Cloneable{
-    private int SENS ;
-    private int JOUR;
-    private int HEURE , MINUTE;
-    private int SECONDE , CENTIEME;
-    private String VITESSE;
-    private String SER;
-    private String TYPE;
+    public int SENS ;
+    public int JOUR;
+    public int HEURE , MINUTE;
+    public int SECONDE , CENTIEME;
+    public String VITESSE;
+    public String SER;
+    public String TYPE;
     public Radar(){
 
     }
