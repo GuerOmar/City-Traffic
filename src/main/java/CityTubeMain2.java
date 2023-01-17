@@ -14,6 +14,8 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,36 +56,71 @@ public class CityTubeMain2 {
         }
     }
 
-    public static class CityTubeReducer2 extends Reducer<Text, IntWritable,Text,IntWritable> {
-        public void reduce(Text key, Iterable<IntWritable> values,Context context) throws IOException, InterruptedException {
-//            int max = 0;
-//            for (IntWritable val : values) {
-//                if (val.get() > max) {
-//                    max = val.get();
-//                }
-//            }
-//            context.write(key, new IntWritable(max));
+    public static class CityTubeReducer extends Reducer<LongWritable, Tube,Text,Text> {
+        private Map<String,int[]> map = new HashMap<>();
+
+        private String[] sens = {"",""};
+        long counter = 0;
+
+
+        @Override
+        protected void cleanup(Context context) throws IOException, InterruptedException {
+            context.write(new Text("Date:Heure"), new Text("Nombres de voitures "+sens[0]+","+"Nombres de voitures "+sens[1]));
+            for (Map.Entry<String, int[]> entry : map.entrySet()) {
+                String mapKey = entry.getKey();
+                int[] value = entry.getValue();
+                context.write(new Text(mapKey),new Text(value[0]+","+value[1]));
+            }
+
+       }
+
+        public void reduce(LongWritable key, Iterable<Tube> values,Context context) throws IOException, InterruptedException {
+            for (Tube tube: values) {
+                counter ++;
+                String ch = tube.date +":"+ tube.heure ;
+                int[] counters = map.get(ch);
+                if (counters == null){
+                    counters = new int[2];
+                    map.put(ch, counters);
+                }
+
+                if(sens[0].equals(""))
+                    sens[0] = tube.voie;
+                if(!tube.voie.equals(sens[0]) && sens[1].equals(""))
+                    sens[1] = tube.voie;
+
+                if (tube.voie.equals(sens[0])){
+                    counters[0]++;
+                } else if (tube.voie.equals(sens[1])){
+                    counters[1]++;
+                }
+            }
+
         }
     }
 
     public static void main(String[] args) throws Exception {
         // Multiple Input Format
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "Cleaning Cam Data");
+        Job job = Job.getInstance(conf, "Cleaning Tube Data");
         job.setJarByClass(CityTubeMain2.class);
         job.setMapperClass(CityTubeMain2.CityTubeMapper2.class);
-//        job.setReducerClass(CityTubeReducer.class);
+
+        job.setNumReduceTasks(1);
+        job.setReducerClass(CityTubeReducer.class);
 
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(Tube.class);
-        job.setOutputKeyClass(LongWritable.class);
-        job.setOutputValueClass(Tube.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
         job.setInputFormatClass(TextInputFormat.class);
         job.setOutputFormatClass(TextOutputFormat.class);
         // /user/auber/data_ple/citytube/Data_cam_example.csv
         // testCamCleaning
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        for(int i = 0 ; i<args.length-1; i++){
+            FileInputFormat.addInputPath(job, new Path(args[i]));
+        }
+        FileOutputFormat.setOutputPath(job, new Path(args[args.length-1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }

@@ -5,10 +5,10 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class Tube implements Writable, Cloneable{
-    private String voie ;
-    private String date;
-    private int heure, minute, seconde, centieme, vitesse;
-    private String catégorie;
+    public String voie ;
+    public String date;
+    public int heure, minute, seconde, centieme, vitesse;
+    public String catégorie;
     public Tube(){
 
     }
