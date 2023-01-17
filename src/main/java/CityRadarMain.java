@@ -37,14 +37,11 @@ public class CityRadarMain {
                         heure = Integer.parseInt(tokens[2].substring(0, 2));
                         minute = Integer.parseInt(tokens[2].substring(2, 4));
                         break;
-                    case 2:
-                        heure = Integer.parseInt(tokens[2].substring(0, 1));
-                        minute = Integer.parseInt(tokens[2].substring(1, 2));
-                        break;
                     default:
-                        minute = Integer.parseInt(tokens[2].substring(0, 1));
+                        heure = 0;
+                        minute = Integer.parseInt(tokens[2]);
                         break;
-                }
+                    }
                 }
             if (tokens[3].length() != 0){
                 switch(tokens[3].length()) {

@@ -3,6 +3,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -12,30 +14,47 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-public class CityTubeMain {
+public class CityTubeMain2 {
 
-    public static class CityTubeMapper extends Mapper<LongWritable, Text, LongWritable, Tube> {
+    public static class CityTubeMapper2 extends Mapper<LongWritable, Text, LongWritable, Tube> {
         public String[] directions ;
         @Override
         protected void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
             String tokens[] = value.toString().split(",");
+            String direction = "";
             if(key.get() ==0)
-            return;
-            if (tokens.length < 9) return;
+                return;
+            if (tokens.length < 6) return;
             if(tokens[0].length() == 0 || tokens[1].length() ==0 || tokens[2].length() ==0 || tokens[3].length() == 0
-            || tokens[4].length() ==0 || tokens[5].length() ==0 || tokens[8].length() ==0 )
-            return ;
-            int heure = Integer.parseInt(tokens[2].split(":")[0]);
-            int minute = Integer.parseInt(tokens[2].split(":")[1]) ;
-            context.write(key,new Tube (tokens[0],tokens[1],heure,minute,Integer.parseInt(tokens[3]),Integer.parseInt(tokens[4]),
-                    Integer.parseInt(tokens[5]),tokens[8]));
+                    || tokens[4].length() ==0 || tokens[5].length() ==0  )
+                return ;
+            
+            InputSplit inputSplit = context.getInputSplit();
+            Path path = ((FileSplit)inputSplit).getPath();
+            String fileName = path.getName();
+            String[] tokens2 = fileName.split("_");
+            direction = tokens2[1]+" "+tokens2[2];
+            /* Pattern pattern = Pattern.compile("^(.*?)_(.*?)_(.*?)_");
+            Matcher matcher = pattern.matcher(fileName);
+            if (matcher.find()) {
+                direction  = matcher.group(2);
+            } else {
+                System.out.println("No match found");
+            } */
+
+            int heure = Integer.parseInt(tokens[1].split(":")[0]);
+            int minute = Integer.parseInt(tokens[1].split(":")[1]) ;
+            context.write(key,new Tube (direction,tokens[0],heure,minute,Integer.parseInt(tokens[2]),Integer.parseInt(tokens[3]),
+                    Integer.parseInt(tokens[4]),tokens[5]));
 
         }
     }
 
-    public static class CityTubeReducer extends Reducer<Text,IntWritable,Text,IntWritable> {
+    public static class CityTubeReducer2 extends Reducer<Text, IntWritable,Text,IntWritable> {
         public void reduce(Text key, Iterable<IntWritable> values,Context context) throws IOException, InterruptedException {
 //            int max = 0;
 //            for (IntWritable val : values) {
@@ -51,8 +70,8 @@ public class CityTubeMain {
         // Multiple Input Format
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Cleaning Cam Data");
-        job.setJarByClass(CityTubeMain.class);
-        job.setMapperClass(CityTubeMapper.class);
+        job.setJarByClass(CityTubeMain2.class);
+        job.setMapperClass(CityTubeMain2.CityTubeMapper2.class);
 //        job.setReducerClass(CityTubeReducer.class);
 
         job.setMapOutputKeyClass(LongWritable.class);

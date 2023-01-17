@@ -5,7 +5,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class Tube implements Writable, Cloneable{
-    private int voie ;
+    private String voie ;
     private String date;
     private int heure, minute, seconde, centieme, vitesse;
     private String catégorie;
@@ -14,7 +14,7 @@ public class Tube implements Writable, Cloneable{
     }
 
 
-    public Tube(int voie, String date, int heure, int minute, int seconde, int centieme, int vitesse,
+    public Tube(String voie, String date, int heure, int minute, int seconde, int centieme, int vitesse,
             String catégorie) {
         this.voie = voie;
         this.date = date;
@@ -29,7 +29,7 @@ public class Tube implements Writable, Cloneable{
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        dataOutput.writeInt(voie);
+        dataOutput.writeUTF(voie);
         dataOutput.writeUTF(date);
         dataOutput.writeInt(heure);
         dataOutput.writeInt(minute);
@@ -42,7 +42,7 @@ public class Tube implements Writable, Cloneable{
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        voie = dataInput.readInt();
+        voie = dataInput.readUTF();
         date = dataInput.readUTF();
         heure = dataInput.readInt();
         minute = dataInput.readInt();
@@ -54,7 +54,7 @@ public class Tube implements Writable, Cloneable{
 
     @Override
     public String toString() {
-        return voie +";" + date +";" + heure + ";" + minute + ";" + seconde + ";" + centieme + ";" + vitesse + ";" + catégorie;
+        return voie +"," + date +"," + heure + "," + minute + "," + seconde + "," + centieme + "," + vitesse + "," + catégorie;
     }
 
 }
