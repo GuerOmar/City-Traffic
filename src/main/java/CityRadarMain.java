@@ -3,23 +3,21 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import org.apache.hadoop.util.hash.Hash;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CityRadarMain {
     public static class CityRadarMapper extends Mapper<LongWritable, Text, LongWritable, Radar> {
         int heure, minute, seconde, centieme;
-
+        String direction = "";
         @Override
         protected void map(LongWritable key, Text value, Context context)
                 throws IOException, InterruptedException {
@@ -56,48 +54,22 @@ public class CityRadarMain {
                     centieme = Integer.parseInt(tokens[3]);
                 }
             }
-            context.write(key, new Radar(Integer.parseInt(tokens[0]),Integer.parseInt(tokens[1]), heure, minute,seconde,centieme,tokens[4],tokens[5],tokens[6]));
+
+            InputSplit inputSplit = context.getInputSplit();
+            Path path = ((FileSplit)inputSplit).getPath();
+            String fileName = path.getName();
+            String[] tokens2 = fileName.split("_");
+            direction = tokens2[1]+" "+tokens2[2];
+
+
+            context.write(key, new Radar(direction,Integer.parseInt(tokens[1]),
+             heure, minute,seconde,centieme,Double.parseDouble(tokens[4].split("=")[1]),
+             Integer.parseInt(tokens[5].split("=")[1]),tokens[6]));
 
         }
     }
 
-    public static class CityRadarReducer   extends Reducer<LongWritable, Radar, Text, Text> {
-        private Map<String,int[]> map = new HashMap<>();
-        long counter = 0;
 
-
-        @Override
-        protected void cleanup(Context context) throws IOException, InterruptedException {
-            for (Map.Entry<String, int[]> entry : map.entrySet()) {
-                String mapKey = entry.getKey();
-                int[] value = entry.getValue();
-                context.write(new Text(mapKey),new Text(value[0]+","+value[1]));
-            }
-
-//            context.write(new Text("Counter is "), new Text(""+counter));
-//            context.write(new Text("HashMap length is") , new Text(""+ map.size()));
-        }
-
-        public void reduce(LongWritable key, Iterable<Radar> values,Context context) throws IOException, InterruptedException {
-            for (Radar radar: values) {
-                counter ++;
-                String ch = radar.JOUR +":"+ radar.HEURE ;
-                int[] counters = map.get(ch);
-                if (counters == null){
-                    counters = new int[2];
-                    map.put(ch, counters);
-                }
-                if (radar.SENS == 1) {
-                    counters[0]++;
-                } else if (radar.SENS == 2) {
-                    counters[1]++;
-                }
-            }
-
-
-
-        }
-    }
 
     public static void main(String[] args) throws Exception {
         // Multiple Input Format
@@ -108,7 +80,6 @@ public class CityRadarMain {
 
         job.setJarByClass(CityRadarMain.class);
         job.setMapperClass(CityRadarMapper.class);
-        job.setReducerClass(CityRadarReducer.class);
 
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(Radar.class);

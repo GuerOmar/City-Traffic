@@ -5,18 +5,18 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 public class Radar implements Writable, Cloneable{
-    public int SENS ;
+    public String SENS ;
     public int JOUR;
     public int HEURE , MINUTE;
     public int SECONDE , CENTIEME;
-    public String VITESSE;
-    public String SER;
+    public double VITESSE;
+    public int SER;
     public String TYPE;
     public Radar(){
 
     }
 
-    public Radar(int SENS, int JOUR, int HEURE, int MINUTE, int SECONDE, int CENTIEME, String VITESSE, String SER, String TYPE) {
+    public Radar(String SENS, int JOUR, int HEURE, int MINUTE, int SECONDE, int CENTIEME, double VITESSE, int SER, String TYPE) {
         this.SENS = SENS;
         this.JOUR = JOUR;
         this.HEURE = HEURE;
@@ -30,28 +30,28 @@ public class Radar implements Writable, Cloneable{
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
-        dataOutput.writeInt(SENS);
+        dataOutput.writeUTF(SENS);
         dataOutput.writeInt(JOUR);
         dataOutput.writeInt(HEURE);
         dataOutput.writeInt(MINUTE);
         dataOutput.writeInt(SECONDE);
         dataOutput.writeInt(CENTIEME);
-        dataOutput.writeUTF(VITESSE);
-        dataOutput.writeUTF(SER);
+        dataOutput.writeDouble(VITESSE);
+        dataOutput.writeInt(SER);
         dataOutput.writeUTF(TYPE);
 
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        SENS = dataInput.readInt();
+        SENS = dataInput.readUTF();
         JOUR = dataInput.readInt();
         HEURE = dataInput.readInt();
         MINUTE = dataInput.readInt();
         SECONDE = dataInput.readInt();
         CENTIEME= dataInput.readInt();
-        VITESSE = dataInput.readUTF();
-        SER = dataInput.readUTF();
+        VITESSE = dataInput.readDouble();
+        SER = dataInput.readInt();
         TYPE = dataInput.readUTF();
 
     }
