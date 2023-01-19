@@ -1,0 +1,5 @@
+file path,mapper class
+/user/oguermazi/ResultatCSV/P1/P1.csv,CameraMapper
+/user/oguermazi/ResultatCSV/P5/P5.csv,RadarMapper1
+/user/oguermazi/ResultatCSV/P26/P26_Vers_Rocade_1.csv,TubeMapper
+/user/oguermazi/ResultatCSV/P24/P24_Vers_Fac.csv,TubeMapper
