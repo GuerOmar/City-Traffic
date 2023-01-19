@@ -5,6 +5,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.InputSplit;
 import java.io.IOException;
+import java.lang.reflect.Method;
 
 public class RadarMapper1 extends Mapper<LongWritable, Text, LongWritable, Sensor> {
     int heure, minute, seconde, centieme;
@@ -46,8 +47,29 @@ public class RadarMapper1 extends Mapper<LongWritable, Text, LongWritable, Senso
             }
         }
 
+
         InputSplit inputSplit = context.getInputSplit();
-        Path path = ((FileSplit)inputSplit).getPath();
+        Class<? extends InputSplit> splitClass = inputSplit.getClass();
+        FileSplit fileSplit = null;
+        if (splitClass.equals(FileSplit.class)) {
+            fileSplit = (FileSplit) inputSplit;
+        } else if (splitClass.getName().equals(
+                "org.apache.hadoop.mapreduce.lib.input.TaggedInputSplit")) {
+            // begin reflection hackery...
+
+            try {
+                Method getInputSplitMethod = splitClass
+                        .getDeclaredMethod("getInputSplit");
+                getInputSplitMethod.setAccessible(true);
+                fileSplit = (FileSplit) getInputSplitMethod.invoke(inputSplit);
+            } catch (Exception e) {
+                // wrap and re-throw error
+                throw new IOException(e);
+            }
+
+            // end reflection hackery
+        }
+        Path path = fileSplit .getPath();
         String fileName = path.getName();
         String[] tokens2 = fileName.split("_");
         
