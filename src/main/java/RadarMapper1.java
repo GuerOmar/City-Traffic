@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 public class RadarMapper1 extends Mapper<LongWritable, Text, LongWritable, Sensor> {
     int heure, minute, seconde, centieme;
     String direction = "";
+    String sensor_id ="" ;
     @Override
     protected void map(LongWritable key, Text value, Context context)
             throws IOException, InterruptedException {
@@ -71,6 +72,12 @@ public class RadarMapper1 extends Mapper<LongWritable, Text, LongWritable, Senso
         }
         Path path = fileSplit .getPath();
         String fileName = path.getName();
+        if(fileName.indexOf("_")==-1){
+             sensor_id = fileName.split("\\.")[0];
+        }
+        else{
+            sensor_id = fileName.split("_")[0];
+        }
         String[] tokens2 = fileName.split("_");
         
         if(tokens[0].equals("1") || tokens[0].equals("2") ){
@@ -83,7 +90,7 @@ public class RadarMapper1 extends Mapper<LongWritable, Text, LongWritable, Senso
         String date = tokens[1]+"/10/2022";
         String vitesse = tokens[4].split("=")[1];
 
-        context.write(key, new Sensor(tokens2[0], direction, date , heure, minute , seconde, centieme, 
+        context.write(key, new Sensor(sensor_id, direction, date , heure, minute , seconde, centieme, 
         Double.parseDouble(vitesse), tokens[6] ));
 
     }

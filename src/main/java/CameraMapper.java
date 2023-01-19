@@ -72,6 +72,8 @@ public class CameraMapper extends Mapper<LongWritable, Text, LongWritable, Senso
         String[] secondeCentieme = heureMinute[2].split("\\.");
         seconde = Integer.parseInt(secondeCentieme[0]);
         centieme = Integer.parseInt(secondeCentieme[1]);
+
+        
        
 
         context.write(key,new Sensor (tokens2[0],direction, date,heure,minute,seconde,centieme,0,"" ));

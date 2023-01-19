@@ -8,6 +8,7 @@ import java.io.IOException;
 
 public class RadarMapper2 extends Mapper<LongWritable, Text, LongWritable, Sensor> {
     int heure, minute, seconde, centieme;
+    String sensor_id ="" ;
 
     @Override
     protected void map(LongWritable key, Text value, Context context)
@@ -34,9 +35,13 @@ public class RadarMapper2 extends Mapper<LongWritable, Text, LongWritable, Senso
         InputSplit inputSplit = context.getInputSplit();
         Path path = ((FileSplit)inputSplit).getPath();
         String fileName = path.getName();
-        String[] tokens2 = fileName.split("\\.");
-
-          context.write(key, new Sensor(tokens2[0],tokens[1], date, heure, minute, seconde, centieme, Double.parseDouble(tokens[2]), tokens[4])); 
+        if(fileName.indexOf("_")==-1){
+            sensor_id = fileName.split("\\.")[0];
+       }
+       else{
+           sensor_id = fileName.split("_")[0];
+       }
+          context.write(key, new Sensor(sensor_id,tokens[1], date, heure, minute, seconde, centieme, Double.parseDouble(tokens[2]), tokens[4])); 
 
     }
 }
