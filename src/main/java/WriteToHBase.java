@@ -8,6 +8,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.hbase.mapreduce.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableReducer;
 import java.io.IOException;
+
+import javax.print.attribute.standard.Destination;
+
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
@@ -19,20 +22,32 @@ import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 
 public class WriteToHBase {
-    private static final String TABLE_NAME = "fzanonboito:worldcitiespop_test"; //IL FAUT CHANGER LE NAMESPACE
+    private static final String TABLE_NAME = "hga_oge:citytraffic_table";
+    static String[] destinations; //IL FAUT CHANGER LE NAMESPACE
 
-    public static class WriteReducer extends TableReducer<LongWritable, Text, Text> {
+    public static class WriteReducer extends TableReducer<Text, Text, Text> {
         @Override
         protected void setup(Context context) throws IOException, InterruptedException {
             // something that need to be done at start of reducer
         }
 
         @Override
-        public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             for (Text val : values) {
-                Put put = new Put(key.toString().getBytes());
-                put.addColumn(Bytes.toBytes("line"), Bytes.toBytes("line"), val.toString().getBytes());
-                context.write(new Text(key.toString()), put);
+                String[] line = val.toString().split(",");
+                if(key.toString().equals("Date:Heure")){
+                    destinations= line ;
+                }
+                else{
+                    Put put = new Put(key.toString().getBytes());
+                    put.addColumn(Bytes.toBytes("day_stats"), Bytes.toBytes("day"), key.toString().split(":")[0].getBytes());
+                    put.addColumn(Bytes.toBytes("day_stats"), Bytes.toBytes("hour"), key.toString().split(":")[1].getBytes());
+                    for(int i=0; i<line.length ; i++){
+                        put.addColumn(Bytes.toBytes("day_stats"), Bytes.toBytes(destinations[i]), line[i].getBytes());
+                    }
+                    
+                    context.write(new Text(key.toString()), put);
+                }
             }
         }
     }
@@ -48,7 +63,7 @@ public class WriteToHBase {
         try {
             final Admin admin = connect.getAdmin();
             HTableDescriptor tableDescriptor = new HTableDescriptor(TableName.valueOf(TABLE_NAME));
-            HColumnDescriptor fam = new HColumnDescriptor(Bytes.toBytes("line"));
+            HColumnDescriptor fam = new HColumnDescriptor(Bytes.toBytes("day_stats"));
             tableDescriptor.addFamily(fam);
             createOrOverwrite(admin, tableDescriptor);
             admin.close();
@@ -66,7 +81,7 @@ public class WriteToHBase {
         Connection connection = ConnectionFactory.createConnection(conf);
         createTable(connection);
         //input from HDFS file
-        FileInputFormat.addInputPath(job, new Path("/user/auber/data_ple/worldcitiespop.txt"));
+        FileInputFormat.addInputPath(job, new Path("/user/hgassara/hour_reducer_data/part-r-00000"));
         job.setInputFormatClass(TextInputFormat.class);
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(Text.class);
