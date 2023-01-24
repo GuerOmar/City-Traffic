@@ -1,3 +1,4 @@
+import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.*;
@@ -14,48 +15,26 @@ import java.io.IOException;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.hbase.TableName;
+import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.util.ToolRunner;
 
-public class WriteToHBase2 {
-    private static final String TABLE_NAME = "oguermazi:citytraffic_table";
-    static String[] destinations; //IL FAUT CHANGER LE NAMESPACE
+public class WriteToHBaseAdaptater extends Configured implements Tool {
+    Class reducer;
+    private String TABLE_NAME ;
 
-    public static class WriteReducer extends TableReducer<Text, Text, Text> {
-        @Override
-        protected void setup(Context context) throws IOException, InterruptedException {
-            // something that need to be done at start of reducer
-        }
-
-        @Override
-        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            for (Text val : values) {
-                String[] line = val.toString().split(",");
-                if(key.toString().equals("#Date:Heure")){
-                    destinations= new String[line.length];
-                    for(int i = 0;i<line.length;i++)
-                        destinations[i] = line[i];
-                }
-                else{
-                    Put put = new Put(key.toString().getBytes());
-                    put.addColumn(Bytes.toBytes("day_stats"), Bytes.toBytes("day"), key.toString().split(":")[0].getBytes());
-                    put.addColumn(Bytes.toBytes("day_stats"), Bytes.toBytes("hour"), key.toString().split(":")[1].getBytes());
-                    for(int i=0; i<line.length ; i++){
-                        put.addColumn(Bytes.toBytes("day_stats"), Bytes.toBytes(destinations[i]), line[i].getBytes());
-                        context.write(new Text(key.toString()), put);
-                    }
-
-                }
-            }
-        }
+    public WriteToHBaseAdaptater(Class reducer, String name){
+        this.reducer = reducer;
+        TABLE_NAME = name;
     }
 
-    public static void createOrOverwrite(Admin admin, TableDescriptor table) throws IOException {
+    public void createOrOverwrite(Admin admin, TableDescriptor table) throws IOException {
         if (admin.tableExists(table.getTableName())) {
             admin.disableTable(table.getTableName());
             admin.deleteTable(table.getTableName());
         }
         admin.createTable(table);
     }
-    public static void createTable(Connection connect) {
+    public void createTable(Connection connect) {
         try {
             final Admin admin = connect.getAdmin();
             TableDescriptorBuilder tableDescriptorBuilder = TableDescriptorBuilder.newBuilder(TableName.valueOf(TABLE_NAME));
@@ -70,20 +49,25 @@ public class WriteToHBase2 {
         }
     }
 
-    public static void main (String[] args) throws Exception {
+    public int run(String[] args) throws Exception {
         Configuration conf = HBaseConfiguration.create();
         Job job = Job.getInstance(conf, "Write to HBase example");
-        job.setJarByClass(WriteToHBase2.class);
+        job.setJarByClass(WriteToHBaseAdaptater.class);
         //create the table (sequential part)
         Connection connection = ConnectionFactory.createConnection(conf);
         createTable(connection);
         //input from HDFS file
-        FileInputFormat.addInputPath(job, new Path("testHour/part-r-00000"));
+        FileInputFormat.addInputPath(job, new Path(args[0]));
         job.setInputFormatClass(SequenceFileInputFormat.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
         //output to an HBase table
-        TableMapReduceUtil.initTableReducerJob(TABLE_NAME, WriteReducer.class, job);
-        job.waitForCompletion(true);
+        TableMapReduceUtil.initTableReducerJob(TABLE_NAME, reducer, job);
+        return (job.waitForCompletion(true) ? 0 : 1);
     }
+
+    public static void main (String[] args) throws Exception {
+        System.exit(ToolRunner.run(new WriteToHBaseAdaptater(WriteDayHour.class,"oguermazi:citytraffic_table"), args));
+    }
+
 }

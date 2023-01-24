@@ -14,6 +14,9 @@ public class JobsExecuter {
         int exitCode4 =ToolRunner.run(new ReducerAdaptaterDriver(VehicleReducer.class), testArgs);
         testArgs[1]="sensor_reducer_data";
         int exitCode5 =ToolRunner.run(new ReducerAdaptaterDriver(SensorReducer.class), testArgs);
+
+        testArgs[0]="hour_reducer_data/part-r-00000";
+        int exitCode6 =ToolRunner.run(new WriteToHBaseAdaptater(WriteDayHour.class,"oguermazi:citytraffic_table"), testArgs);
         //        ProgramDriver pgd = new ProgramDriver();
 //        int exitCode = -1;
 //        try {
