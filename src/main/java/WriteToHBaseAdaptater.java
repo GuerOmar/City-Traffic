@@ -67,7 +67,7 @@ public class WriteToHBaseAdaptater extends Configured implements Tool {
     }
 
     public static void main (String[] args) throws Exception {
-        System.exit(ToolRunner.run(new WriteToHBaseAdaptater(WriteDayHour.class,"oguermazi:citytraffic_table"), args));
+        System.exit(ToolRunner.run(new WriteToHBaseAdaptater(WriteDay.class,"oguermazi:citytraffic_day"), args));
     }
 
 }

@@ -16,17 +16,17 @@ public class JobsExecuter {
         int exitCode5 =ToolRunner.run(new ReducerAdaptaterDriver(SensorReducer.class), testArgs);
 
         testArgs[0]="hour_reducer_data/part-r-00000";
-        int exitCode6 =ToolRunner.run(new WriteToHBaseAdaptater(WriteDayHour.class,"oguermazi:citytraffic_table"), testArgs);
-        //        ProgramDriver pgd = new ProgramDriver();
-//        int exitCode = -1;
-//        try {
-//            pgd.addClass("Clean", MultiMapperDriver.class, "Clean Data");
-//            pgd.addClass("HourReducer", Test.class, "analise data");
-//            pgd.
-//            exitCode = pgd.run(args);
-//        } catch (Throwable e1)  {
-//            e1.printStackTrace();
-//        }
+        int exitCode6 =ToolRunner.run(new WriteToHBaseAdaptater(WriteDayHour.class,"oguermazi:hour_reducer_data"), testArgs);
+
+        testArgs[0]="day_reducer_data/part-r-00000";
+        int exitCode7 =ToolRunner.run(new WriteToHBaseAdaptater(WriteDay.class,"oguermazi:day_reducer_data"), testArgs);
+
+        testArgs[0]="vehicule_reducer_data/part-r-00000";
+        int exitCode8 =ToolRunner.run(new WriteToHBaseAdaptater(WriteVehicule.class,"oguermazi:vehicule_reducer_data"), testArgs);
+
+        testArgs[0]="sensor_reducer_data/part-r-00000";
+        int exitCode9 =ToolRunner.run(new WriteToHBaseAdaptater(WriteSensor.class,"oguermazi:sensor_reducer_data"), testArgs);
+
         System.exit(exitCode);
     }
 }

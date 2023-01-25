@@ -46,7 +46,9 @@ public class TubeMapper extends Mapper<LongWritable, Text, LongWritable, Sensor>
         Path path = fileSplit .getPath();
         String fileName = path.getName();
         String[] tokens2 = fileName.split("_");
-        direction = tokens2[1]+" "+tokens2[2];
+        if (tokens2.length >=3)
+            direction = tokens2[1]+" "+tokens2[2];
+        else direction = tokens2[1];
         
         String date = tokens[0].split("/")[0]+"/"+tokens[0].split("/")[1]+"/20"+tokens[0].split("/")[2];
 

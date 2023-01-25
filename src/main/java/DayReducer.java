@@ -21,7 +21,7 @@ public class DayReducer extends Reducer<LongWritable, Sensor,Text,Text> {
             j++;
         }
         text = text.substring(1);
-        context.write(new Text("Date:Heure"), new Text(text));
+        context.write(new Text("#Date"), new Text(text));
         for (Map.Entry<String, int[]> entry : map.entrySet()) {
             String mapKey = entry.getKey();
             int[] value = entry.getValue();

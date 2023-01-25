@@ -5,27 +5,18 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
-import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 
 public class MultiMapperDriver extends Configured implements Tool{
     public int run(String[] args) throws Exception {
         Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "Multi Mapper Job");
+        Job job = Job.getInstance(conf, "Cleaning All files");
         job.setJarByClass(MultiMapperDriver.class);
 
         // Reading File paths and corresponding Mapper Class Name
@@ -38,16 +29,11 @@ public class MultiMapperDriver extends Configured implements Tool{
             String classname = tokens[1];
             Class mapperClass = Class.forName(classname);
 
-            // Add the input path and mapper class for this file
             MultipleInputs.addInputPath(job, new Path(path), TextInputFormat.class, mapperClass);
 
         }
         br.close();
 
-//        // Set the input paths and mappers for each file type
-//        MultipleInputs.addInputPath(job, new Path(args[0]), TextInputFormat.class, CameraMapper.class);
-//        MultipleInputs.addInputPath(job, new Path(args[1]), TextInputFormat.class, RadarMapper1.class);
-//        MultipleInputs.addInputPath(job, new Path(args[2]), TextInputFormat.class, TubeMapper.class);
 
         job.setReducerClass(CombinerReducer.class);
 
